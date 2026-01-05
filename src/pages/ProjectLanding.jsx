@@ -1322,6 +1322,7 @@ const ContactPopup = ({ isOpen, onClose }) => {
   const popupNameRef = useRef(null);
   const popupEmailRef = useRef(null);
   const popupPhoneRef = useRef(null);
+  const popupSpecialEnquiryRef = useRef(null);
 
   const whatsappNumber = "+919560002261";
 
@@ -1330,6 +1331,7 @@ const ContactPopup = ({ isOpen, onClose }) => {
     const name = (popupNameRef.current?.value || "").trim();
     const email = (popupEmailRef.current?.value || "").trim();
     const phone = (popupPhoneRef.current?.value || "").trim();
+    const specialEnquiry = (popupSpecialEnquiryRef.current?.value || "").trim();
 
     // Save to backend
     try {
@@ -1338,12 +1340,13 @@ const ContactPopup = ({ isOpen, onClose }) => {
         email,
         phone,
         message: "Popup Enquiry from Shapoorji Pallonji Dualis Landing Page",
+        specialEnquiry
       });
     } catch (error) {
       console.error("Error saving enquiry:", error);
     }
 
-    const message = `*New Project Enquiry*\n\nName: ${name}\nEmail: ${email}\nPhone: ${phone}\nProject: Shapoorji Pallonji Dualis`;
+    const message = `*New Project Enquiry*\n\nName: ${name}\nEmail: ${email}\nPhone: ${phone}\nProject: Shapoorji Pallonji Dualis\nSpecial Enquiry: ${specialEnquiry}`;
     const cleaned = whatsappNumber.replace(/\D/g, "");
     const url = `https://wa.me/${cleaned}?text=${encodeURIComponent(message)}`;
 
@@ -1375,6 +1378,9 @@ const ContactPopup = ({ isOpen, onClose }) => {
           </div>
           <div>
             <input ref={popupPhoneRef} type="tel" placeholder="Mobile*" required className="w-full bg-black/30 border border-gray-700 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#dfae75] transition-colors placeholder-gray-500" />
+          </div>
+          <div>
+            <input ref={popupSpecialEnquiryRef} type="text" placeholder="Special Enquiry" className="w-full bg-black/30 border border-gray-700 rounded-sm px-4 py-3 text-white focus:outline-none focus:border-[#dfae75] transition-colors placeholder-gray-500" />
           </div>
           <button type="submit" className="w-full bg-gradient-to-r from-[#dfae75] to-[#cfa065] text-black font-bold py-3 uppercase tracking-wider hover:opacity-90 transition-opacity rounded-sm mt-2 shadow-lg">
             SUBMIT
