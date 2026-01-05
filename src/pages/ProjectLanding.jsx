@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import api from '../utils/api';
 const logo = "/logo-img.png";
 
-const ProjectLanding = () => {
+const ProjectLanding = ({ setCurrentPage }) => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isVideoPopupOpen, setIsVideoPopupOpen] = useState(false);
   const [activeVideo, setActiveVideo] = useState({
@@ -33,22 +33,20 @@ const ProjectLanding = () => {
 
     // Save to backend
     try {
-      await api.post('/enquiries', {
+      await api.post('/project-enquiries', {
         name,
         email,
         phone,
         message: "Enquiry from Shapoorji Pallonji Dualis Landing Page",
-        specialEnquiry
+        specialEnquiry,
+        project: "Shapoorji Pallonji Dualis"
       });
     } catch (error) {
       console.error("Error saving enquiry:", error);
     }
 
-    const message = `*New Project Enquiry*\n\nName: ${name}\nEmail: ${email}\nPhone: ${phone}\nProject: Shapoorji Pallonji Dualis\nSpecial Enquiry: ${specialEnquiry}`;
-    const cleaned = whatsappNumber.replace(/\D/g, "");
-    const url = `https://wa.me/${cleaned}?text=${encodeURIComponent(message)}`;
-
-    window.open(url, "_blank");
+    // Navigate to Thank You page
+    setCurrentPage("thank-you");
 
     // Reset form
     if (heroNameRef.current) heroNameRef.current.value = "";
@@ -66,22 +64,20 @@ const ProjectLanding = () => {
 
     // Save to backend
     try {
-      await api.post('/enquiries', {
+      await api.post('/project-enquiries', {
         name,
         email,
         phone,
         message: "Footer Enquiry from Shapoorji Pallonji Dualis Landing Page",
-        specialEnquiry
+        specialEnquiry,
+        project: "Shapoorji Pallonji Dualis"
       });
     } catch (error) {
       console.error("Error saving enquiry:", error);
     }
 
-    const message = `*New Footer Enquiry*\n\nName: ${name}\nEmail: ${email}\nPhone: ${phone}\nProject: Shapoorji Pallonji Dualis\nSpecial Enquiry: ${specialEnquiry}`;
-    const cleaned = whatsappNumber.replace(/\D/g, "");
-    const url = `https://wa.me/${cleaned}?text=${encodeURIComponent(message)}`;
-
-    window.open(url, "_blank");
+    // Navigate to Thank You page
+    setCurrentPage("thank-you");
 
     // Reset form
     if (footerNameRef.current) footerNameRef.current.value = "";
@@ -1150,7 +1146,7 @@ const ProjectLanding = () => {
         </div>
       </section>
 
-      <ContactPopup isOpen={isPopupOpen} onClose={() => setIsPopupOpen(false)} />
+      <ContactPopup isOpen={isPopupOpen} onClose={() => setIsPopupOpen(false)} setCurrentPage={setCurrentPage} />
       <VideoPopup
         isOpen={isVideoPopupOpen}
         onClose={() => setIsVideoPopupOpen(false)}
@@ -1318,7 +1314,7 @@ const VideoPopup = ({ isOpen, onClose, videoData }) => {
   );
 };
 
-const ContactPopup = ({ isOpen, onClose }) => {
+const ContactPopup = ({ isOpen, onClose, setCurrentPage }) => {
   const popupNameRef = useRef(null);
   const popupEmailRef = useRef(null);
   const popupPhoneRef = useRef(null);
@@ -1335,22 +1331,19 @@ const ContactPopup = ({ isOpen, onClose }) => {
 
     // Save to backend
     try {
-      await api.post('/enquiries', {
+      await api.post('/project-enquiries', {
         name,
         email,
         phone,
         message: "Popup Enquiry from Shapoorji Pallonji Dualis Landing Page",
-        specialEnquiry
+        specialEnquiry,
+        project: "Shapoorji Pallonji Dualis"
       });
     } catch (error) {
       console.error("Error saving enquiry:", error);
     }
 
-    const message = `*New Project Enquiry*\n\nName: ${name}\nEmail: ${email}\nPhone: ${phone}\nProject: Shapoorji Pallonji Dualis\nSpecial Enquiry: ${specialEnquiry}`;
-    const cleaned = whatsappNumber.replace(/\D/g, "");
-    const url = `https://wa.me/${cleaned}?text=${encodeURIComponent(message)}`;
-
-    window.open(url, "_blank");
+    setCurrentPage("thank-you");
     onClose();
   };
 

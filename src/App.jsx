@@ -15,6 +15,8 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AddProperty from "./pages/AddProperty";
 import EditProperty from "./pages/EditProperty";
 import AdminEnquiries from "./pages/AdminEnquiries";
+import AdminProjectEnquiries from "./pages/AdminProjectEnquiries";
+import ThankYou from "./pages/ThankYou";
 import ChatBot from "./components/ChatBot";
 import FloatingWhatsApp from "./components/FloatingWhatsApp";
 import SocialBar from "./components/SocialBar";
@@ -91,8 +93,12 @@ function App() {
         );
       case "admin-enquiries":
         return <AdminEnquiries setCurrentPage={setCurrentPage} />;
+      case "admin-project-enquiries":
+        return <AdminProjectEnquiries setCurrentPage={setCurrentPage} />;
       case "project":
-        return <ProjectLanding />;
+        return <ProjectLanding setCurrentPage={setCurrentPage} />;
+      case "thank-you":
+        return <ThankYou setCurrentPage={setCurrentPage} />;
       default:
         return (
           <Home
@@ -141,7 +147,7 @@ function App() {
       setCurrentPage(pathToPage(window.location.pathname));
     };
     window.addEventListener("popstate", onPopState);
-    
+
     return () => {
       window.removeEventListener("popstate", onPopState);
     };
@@ -153,7 +159,9 @@ function App() {
     "add-property",
     "edit-property",
     "admin-enquiries",
+    "admin-project-enquiries",
     "project",
+    "thank-you",
   ].includes(currentPage);
   const showFooter = ![
     "admin-login",
@@ -161,7 +169,9 @@ function App() {
     "add-property",
     "edit-property",
     "admin-enquiries",
+    "admin-project-enquiries",
     "project",
+    "thank-you",
   ].includes(currentPage);
 
   return (
@@ -170,18 +180,18 @@ function App() {
         <PropertyProvider>
           <EnquiryProvider>
             <div className="min-h-screen bg-gray-50">
-                {showNavbar && (
-                  <Navbar
-                    currentPage={currentPage}
-                    setCurrentPage={setCurrentPage}
-                  />
-                )}
-                {/* Site-wide right-side social icons */}
-                {currentPage !== "project" && <SocialBar />}
-                <ErrorBoundary>
-                  {renderPage()}
-                </ErrorBoundary>
-                {showFooter && <Footer setCurrentPage={setCurrentPage} />}
+              {showNavbar && (
+                <Navbar
+                  currentPage={currentPage}
+                  setCurrentPage={setCurrentPage}
+                />
+              )}
+              {/* Site-wide right-side social icons */}
+              {currentPage !== "project" && <SocialBar />}
+              <ErrorBoundary>
+                {renderPage()}
+              </ErrorBoundary>
+              {showFooter && <Footer setCurrentPage={setCurrentPage} />}
               <ChatBot />
               <FloatingWhatsApp />
               {currentPage !== "project" && <TimedWhatsAppPopup />}
