@@ -8,7 +8,10 @@ import {
     Clock,
     Search,
     Layout,
-    MessageSquare
+    MessageSquare,
+    Download,
+    FileText,
+    X
 } from "lucide-react";
 import AdminSidebar from "../components/AdminSidebar";
 import Loader from "../components/Loader";
@@ -21,6 +24,13 @@ const AdminProjectEnquiries = ({ setCurrentPage }) => {
     const [filter, setFilter] = useState("all");
     const [searchTerm, setSearchTerm] = useState("");
     const [actionLoading, setActionLoading] = useState(null);
+    const [showNoteModal, setShowNoteModal] = useState(false);
+    const [selectedNote, setSelectedNote] = useState("");
+    const [dateFilter, setDateFilter] = useState("all");
+    const [customStartDate, setCustomStartDate] = useState("");
+    const [customEndDate, setCustomEndDate] = useState("");
+    const [showCustomDatePicker, setShowCustomDatePicker] = useState(false);
+    const [showDateFilters, setShowDateFilters] = useState(false);
 
     const fetchEnquiries = async (status = "") => {
         setLoading(true);
@@ -73,6 +83,49 @@ const AdminProjectEnquiries = ({ setCurrentPage }) => {
         }
     };
 
+    const getDateRange = () => {
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+        switch (dateFilter) {
+            case 'today':
+                return {
+                    start: today,
+                    end: new Date(today.getTime() + 24 * 60 * 60 * 1000)
+                };
+            case 'tomorrow':
+                const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
+                return {
+                    start: tomorrow,
+                    end: new Date(tomorrow.getTime() + 24 * 60 * 60 * 1000)
+                };
+            case 'week':
+                const weekStart = new Date(today);
+                weekStart.setDate(today.getDate() - today.getDay());
+                const weekEnd = new Date(weekStart);
+                weekEnd.setDate(weekStart.getDate() + 7);
+                return { start: weekStart, end: weekEnd };
+            case 'month':
+                const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+                const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+                return { start: monthStart, end: monthEnd };
+            case 'year':
+                const yearStart = new Date(now.getFullYear(), 0, 1);
+                const yearEnd = new Date(now.getFullYear() + 1, 0, 1);
+                return { start: yearStart, end: yearEnd };
+            case 'custom':
+                if (customStartDate && customEndDate) {
+                    return {
+                        start: new Date(customStartDate),
+                        end: new Date(new Date(customEndDate).getTime() + 24 * 60 * 60 * 1000)
+                    };
+                }
+                return null;
+            default:
+                return null;
+        }
+    };
+
     const getStatusColor = (status) => {
         switch (status) {
             case 'converted': return 'bg-green-100 text-green-700 border-green-200';
@@ -83,13 +136,64 @@ const AdminProjectEnquiries = ({ setCurrentPage }) => {
         }
     };
 
+    const handleExport = () => {
+        const csvData = filteredEnquiries.map(enq => ({
+            Name: enq.name,
+            Email: enq.email,
+            Phone: enq.phone,
+            Project: enq.project,
+            'Special Enquiry': enq.specialEnquiry || '-',
+            Status: enq.status,
+            Date: new Date(enq.createdAt).toLocaleDateString()
+        }));
+
+        const headers = Object.keys(csvData[0] || {});
+        const csv = [
+            headers.join(','),
+            ...csvData.map(row => headers.map(header => `"${row[header]}"`).join(','))
+        ].join('\n');
+
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+
+        // Create filename with date filter info
+        let dateLabel = dateFilter === 'all' ? 'all-time' : dateFilter;
+        if (dateFilter === 'custom' && customStartDate && customEndDate) {
+            dateLabel = `${customStartDate}_to_${customEndDate}`;
+        }
+        const statusLabel = filter !== 'all' ? `_${filter}` : '';
+        a.download = `project-enquiries_${dateLabel}${statusLabel}_${new Date().toISOString().split('T')[0]}.csv`;
+
+        a.click();
+        window.URL.revokeObjectURL(url);
+    };
+
+    const openNoteModal = (note) => {
+        setSelectedNote(note || 'No special enquiry message');
+        setShowNoteModal(true);
+    };
+
     const filteredEnquiries = enquiries.filter((enq) => {
-        return (
+        // Search filter
+        const matchesSearch = (
             enq.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             enq.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
             enq.phone.includes(searchTerm) ||
             (enq.project && enq.project.toLowerCase().includes(searchTerm.toLowerCase()))
         );
+
+        // Date filter
+        const dateRange = getDateRange();
+        let matchesDate = true;
+
+        if (dateRange) {
+            const enquiryDate = new Date(enq.createdAt);
+            matchesDate = enquiryDate >= dateRange.start && enquiryDate < dateRange.end;
+        }
+
+        return matchesSearch && matchesDate;
     });
 
     return (
@@ -99,7 +203,7 @@ const AdminProjectEnquiries = ({ setCurrentPage }) => {
                 setCurrentPage={setCurrentPage}
             />
 
-            <div className="flex-1 p-4 md:p-8 pt-20 md:pt-8 overflow-x-hidden">
+            <div className="flex-1 p-4 md:p-8 pt-20 md:pt-24 lg:pt-8 overflow-x-hidden">
                 <div className="mb-8">
                     <h1 className="text-3xl md:text-5xl font-black bg-gradient-to-r from-blue-600 to-red-600 bg-clip-text text-transparent mb-2">
                         Landing Page Leads
@@ -133,6 +237,108 @@ const AdminProjectEnquiries = ({ setCurrentPage }) => {
                     </div>
                 </div>
 
+                {/* Date Filters - Collapsible */}
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mb-6 overflow-hidden">
+                    <button
+                        onClick={() => setShowDateFilters(!showDateFilters)}
+                        className="w-full p-4 md:p-6 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                    >
+                        <div className="flex items-center gap-2">
+                            <Calendar className="text-blue-600" size={20} />
+                            <h3 className="text-sm md:text-base font-bold text-gray-700">Date Filter</h3>
+                            {dateFilter !== 'all' && (
+                                <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full">
+                                    Active
+                                </span>
+                            )}
+                        </div>
+                        <div className={`transform transition-transform duration-200 ${showDateFilters ? 'rotate-180' : ''}`}>
+                            <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+                    </button>
+
+                    {showDateFilters && (
+                        <div className="px-4 md:px-6 pb-6 border-t border-gray-100">
+                            <div className="flex flex-wrap gap-2 mt-4 mb-4">
+                                {[
+                                    { id: 'all', label: 'All Time' },
+                                    { id: 'today', label: 'Today' },
+                                    { id: 'tomorrow', label: 'Tomorrow' },
+                                    { id: 'week', label: 'This Week' },
+                                    { id: 'month', label: 'This Month' },
+                                    { id: 'year', label: 'This Year' },
+                                ].map((df) => (
+                                    <button
+                                        key={df.id}
+                                        onClick={() => {
+                                            setDateFilter(df.id);
+                                            setShowCustomDatePicker(false);
+                                        }}
+                                        className={`px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-semibold text-[10px] md:text-sm transition-all ${dateFilter === df.id
+                                            ? "bg-blue-600 text-white shadow-lg"
+                                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                            }`}
+                                    >
+                                        {df.label}
+                                    </button>
+                                ))}
+                                <button
+                                    onClick={() => {
+                                        setShowCustomDatePicker(!showCustomDatePicker);
+                                        if (!showCustomDatePicker) {
+                                            setDateFilter('custom');
+                                        }
+                                    }}
+                                    className={`px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-semibold text-[10px] md:text-sm transition-all flex items-center gap-1 ${dateFilter === 'custom'
+                                        ? "bg-purple-600 text-white shadow-lg"
+                                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                        }`}
+                                >
+                                    <Calendar size={14} />
+                                    Custom Range
+                                </button>
+                            </div>
+
+                            {/* Custom Date Picker */}
+                            {showCustomDatePicker && (
+                                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="block text-xs font-bold text-gray-600 mb-1">Start Date</label>
+                                            <input
+                                                type="date"
+                                                value={customStartDate}
+                                                onChange={(e) => setCustomStartDate(e.target.value)}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-gray-600 mb-1">End Date</label>
+                                            <input
+                                                type="date"
+                                                value={customEndDate}
+                                                onChange={(e) => setCustomEndDate(e.target.value)}
+                                                min={customStartDate}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                                            />
+                                        </div>
+                                    </div>
+                                    {customStartDate && customEndDate && (
+                                        <div className="mt-3 flex items-center gap-2 text-xs text-gray-600">
+                                            <Calendar size={14} />
+                                            <span className="font-semibold">
+                                                {new Date(customStartDate).toLocaleDateString()} - {new Date(customEndDate).toLocaleDateString()}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+
                 {/* Filters and Search */}
                 <div className="bg-white rounded-2xl shadow-sm p-4 md:p-6 border border-gray-100 mb-8">
                     <div className="flex flex-col xl:flex-row gap-4 justify-between items-center">
@@ -156,18 +362,50 @@ const AdminProjectEnquiries = ({ setCurrentPage }) => {
                                 </button>
                             ))}
                         </div>
-                        <div className="relative w-full md:w-64">
-                            <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                            <input
-                                type="text"
-                                placeholder="Search leads..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none w-full text-sm"
-                            />
+                        <div className="flex gap-2 w-full md:w-auto">
+                            <div className="relative flex-1 md:w-64">
+                                <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                                <input
+                                    type="text"
+                                    placeholder="Search leads..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none w-full text-sm"
+                                />
+                            </div>
+                            <button
+                                onClick={handleExport}
+                                className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold text-sm transition-all shadow-md"
+                                title="Export to CSV"
+                            >
+                                <Download size={16} />
+                                <span className="hidden md:inline">Export</span>
+                            </button>
                         </div>
                     </div>
                 </div>
+
+                {/* Results Info */}
+                {(searchTerm || dateFilter !== 'all') && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-6 flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-sm text-blue-700">
+                            <FileText size={16} />
+                            <span className="font-semibold">
+                                Showing {filteredEnquiries.length} of {enquiries.length} enquiries
+                            </span>
+                        </div>
+                        <button
+                            onClick={() => {
+                                setSearchTerm('');
+                                setDateFilter('all');
+                                setShowCustomDatePicker(false);
+                            }}
+                            className="text-xs text-blue-600 hover:text-blue-800 font-semibold underline"
+                        >
+                            Clear Filters
+                        </button>
+                    </div>
+                )}
 
                 {/* Content Area */}
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -198,7 +436,20 @@ const AdminProjectEnquiries = ({ setCurrentPage }) => {
                                                     <div className="text-sm text-gray-600 flex items-center gap-1"><Mail size={14} /> {enq.email}</div>
                                                     <div className="text-sm text-gray-600 flex items-center gap-1"><Phone size={14} /> {enq.phone}</div>
                                                 </td>
-                                                <td className="px-6 py-4 text-sm text-gray-700 max-w-xs">{enq.specialEnquiry || "-"}</td>
+                                                <td className="px-6 py-4">
+                                                    {enq.specialEnquiry ? (
+                                                        <button
+                                                            onClick={() => openNoteModal(enq.specialEnquiry)}
+                                                            className="flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-all"
+                                                            title="View special enquiry"
+                                                        >
+                                                            <FileText size={16} />
+                                                            <span className="text-xs font-semibold">View Note</span>
+                                                        </button>
+                                                    ) : (
+                                                        <span className="text-gray-400 text-xs">-</span>
+                                                    )}
+                                                </td>
                                                 <td className="px-6 py-4 text-sm font-semibold text-blue-600 font-mono tracking-tight">{enq.project}</td>
                                                 <td className="px-6 py-4">
                                                     <span className={`px-3 py-1 rounded-full text-[10px] uppercase tracking-wider font-black border ${getStatusColor(enq.status)}`}>
@@ -261,8 +512,19 @@ const AdminProjectEnquiries = ({ setCurrentPage }) => {
                                         </div>
 
                                         <div className="bg-gray-50 rounded-xl p-3 mb-4">
-                                            <p className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-1">Inquiry Details</p>
-                                            <p className="text-sm text-gray-700">{enq.specialEnquiry || "No message"}</p>
+                                            <div className="flex items-center justify-between mb-2">
+                                                <p className="text-xs text-gray-500 uppercase tracking-widest font-bold">Inquiry Details</p>
+                                                {enq.specialEnquiry && (
+                                                    <button
+                                                        onClick={() => openNoteModal(enq.specialEnquiry)}
+                                                        className="flex items-center gap-1 text-blue-600 hover:text-blue-800 text-xs font-semibold"
+                                                    >
+                                                        <FileText size={14} />
+                                                        View Note
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <p className="text-sm text-gray-700">{enq.specialEnquiry ? 'Has special enquiry message' : "No message"}</p>
                                             <div className="mt-3 pt-2 border-t border-gray-200">
                                                 <p className="text-[10px] text-gray-400 mb-1 uppercase tracking-widest">Target Project</p>
                                                 <p className="text-xs font-mono font-bold text-blue-600">{enq.project}</p>
@@ -297,6 +559,39 @@ const AdminProjectEnquiries = ({ setCurrentPage }) => {
                     )}
                 </div>
             </div>
+
+            {/* Notes Modal */}
+            {showNoteModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setShowNoteModal(false)}>
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col p-6 md:p-8 relative" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-between mb-4 flex-shrink-0">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-blue-100 rounded-lg">
+                                    <FileText className="text-blue-600" size={24} />
+                                </div>
+                                <h2 className="text-xl md:text-2xl font-bold text-gray-800">Special Enquiry Note</h2>
+                            </div>
+                            <button
+                                onClick={() => setShowNoteModal(false)}
+                                className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
+                            >
+                                <X size={24} className="text-gray-500" />
+                            </button>
+                        </div>
+                        <div className="bg-gray-50 rounded-xl p-4 md:p-6 border border-gray-200 overflow-y-auto flex-1 min-h-0">
+                            <p className="text-gray-700 text-sm md:text-base leading-relaxed whitespace-pre-wrap break-words">{selectedNote}</p>
+                        </div>
+                        <div className="mt-6 flex justify-end flex-shrink-0">
+                            <button
+                                onClick={() => setShowNoteModal(false)}
+                                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-all"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

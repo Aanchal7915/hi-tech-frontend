@@ -27,14 +27,14 @@ const ThankYou = ({ setCurrentPage }) => {
     };
 
     return (
-        <div className="min-h-screen bg-[#1c1915] flex flex-col items-center justify-center p-4 relative overflow-hidden">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex flex-col items-center justify-center p-4 relative overflow-hidden">
             {/* Background Decoration */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-                <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-[#dfae75]/5 rounded-full blur-[100px]"></div>
-                <div className="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-[#dfae75]/5 rounded-full blur-[100px]"></div>
+                <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-blue-200/20 rounded-full blur-[120px]"></div>
+                <div className="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-purple-200/20 rounded-full blur-[120px]"></div>
             </div>
 
-            <div className="relative z-10 max-w-2xl w-full bg-[#242b2e]/50 backdrop-blur-xl border border-[#dfae75]/20 p-8 md:p-12 rounded-3xl shadow-2xl text-center">
+            <div className="relative z-10 max-w-2xl w-full bg-white/80 backdrop-blur-xl border border-blue-200/50 p-8 md:p-12 rounded-3xl shadow-2xl text-center">
                 {/* Logo Area */}
                 <div className="mb-8">
                     <img
@@ -50,11 +50,11 @@ const ThankYou = ({ setCurrentPage }) => {
                     </div>
                 </div>
 
-                <h1 className="text-4xl md:text-5xl font-serif text-white mb-4 tracking-wider uppercase">
-                    Thank <span className="text-[#dfae75]">You!</span>
+                <h1 className="text-4xl md:text-5xl font-serif text-gray-800 mb-4 tracking-wider uppercase">
+                    Thank <span className="text-blue-600">You!</span>
                 </h1>
 
-                <p className="text-gray-300 text-lg md:text-xl mb-8 font-light italic">
+                <p className="text-gray-600 text-lg md:text-xl mb-8 font-light italic">
                     "Your interest in Shapoorji Pallonji Dualis is appreciated. Our executive will reach out to you shortly."
                 </p>
 
@@ -69,16 +69,16 @@ const ThankYou = ({ setCurrentPage }) => {
 
                     <button
                         onClick={() => setCurrentPage("project")}
-                        className="w-full sm:w-auto flex items-center justify-center gap-3 border border-[#dfae75] text-[#dfae75] hover:bg-[#dfae75] hover:text-black font-bold py-4 px-8 rounded-full transition-all"
+                        className="w-full sm:w-auto flex items-center justify-center gap-3 border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white font-bold py-4 px-8 rounded-full transition-all"
                     >
                         <ArrowLeft className="w-5 h-5" />
                         BACK TO HOME
                     </button>
                 </div>
 
-                <div className="pt-8 border-t border-[#dfae75]/10">
+                <div className="pt-8 border-t border-gray-200">
                     <p className="text-gray-500 text-sm tracking-widest uppercase">
-                        Redirecting in <span className="text-[#dfae75] font-bold">{countdown}</span> seconds
+                        Redirecting in <span className="text-blue-600 font-bold">{countdown}</span> seconds
                     </p>
                 </div>
             </div>
