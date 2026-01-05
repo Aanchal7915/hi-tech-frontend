@@ -107,7 +107,7 @@ const ProjectLanding = () => {
     <div className="w-full font-sans text-white overflow-x-hidden">
 
       {/* ================= NAVBAR STRIP ================= */}
-      <nav className="w-full bg-[#dfae75] py-4 border-b border-black/10 sticky top-0 z-50 shadow-lg">
+      <nav className="w-full bg-[#dfae75] py-2 border-b border-black/10 sticky top-0 z-50 shadow-lg">
         <div className="container mx-auto px-4 flex items-center justify-center gap-3">
           <img
             src={logo}
