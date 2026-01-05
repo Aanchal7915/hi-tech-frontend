@@ -1143,7 +1143,7 @@ const ProjectLanding = () => {
             {/* Copyright/Footer Text */}
             <div className="text-center text-gray-500 text-xs">
               <p className="mt-2 text-sm">
-                &copy; 2024 HI-TECH HOMES. All Rights Reserved. | <a href="/privacy-policy" className="hover:text-[#dfae75] transition-colors">Privacy Policy</a>
+                &copy; 2024 Shapporji Palonji. All Rights Reserved. | <a href="/privacy-policy" className="hover:text-[#dfae75] transition-colors">Privacy Policy</a>
               </p>
             </div>
           </div>
