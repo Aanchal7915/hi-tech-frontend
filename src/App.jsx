@@ -95,10 +95,6 @@ function App() {
         return <AdminEnquiries setCurrentPage={setCurrentPage} />;
       case "admin-project-enquiries":
         return <AdminProjectEnquiries setCurrentPage={setCurrentPage} />;
-      case "project":
-        return <ProjectLanding setCurrentPage={setCurrentPage} />;
-      case "thank-you":
-        return <ThankYou setCurrentPage={setCurrentPage} />;
       default:
         return (
           <Home
@@ -128,8 +124,6 @@ function App() {
           return "privacy-policy";
         case "/terms-conditions":
           return "terms-conditions";
-        case "/project":
-          return "project";
         default:
           return "home";
       }
@@ -169,9 +163,7 @@ function App() {
     "add-property",
     "edit-property",
     "admin-enquiries",
-    "admin-project-enquiries",
-    "project",
-    "thank-you",
+    "admin-project-enquiries"
   ].includes(currentPage);
 
   return (
